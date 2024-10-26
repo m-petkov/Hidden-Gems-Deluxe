@@ -45,14 +45,23 @@ public class HiddenGemsApplication extends Application {
     private Timeline fallTimeline;
     private Timeline moveTimeline;
     private Timeline fastFallTimeline;
+    private Timeline borderAnimation;
+    private double hue1 = 300; // Initial hue for color 1
+    private double hue2 = 180; // Initial hue for color 2
+
+    // Class fields for the border colors
+    private Color borderColor1 = Color.hsb(hue1, 1.0, 1.0);
+    private Color borderColor2 = Color.hsb(hue2, 1.0, 1.0);
     private boolean isFastFalling = false; // За контрол на бързото падане
 
     private double scoreFontSize;
     private double pauseFontSize;
 
     private Canvas canvas; // Декларация на canvas като член на класа
+    private GraphicsContext gc;
 
     @Override
+
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Hidden Gems Deluxe");
 
@@ -62,13 +71,15 @@ public class HiddenGemsApplication extends Application {
         canvas = new Canvas(MIN_WIDTH, MIN_HEIGHT); // Инициализация на canvas
         root.getChildren().add(canvas);
 
-        GraphicsContext gc = canvas.getGraphicsContext2D(); // Инициализация на gc
+        // Initialize gc here, which is now a class-level variable
+        gc = canvas.getGraphicsContext2D();
 
         initializeGameBoard();
+        startBorderAnimation(); // This now has access to gc
         calculateNextStone(); // Calculate the initial nextStone
 
         calculateSizes();
-        drawGameBoard(gc);
+        drawGameBoard(gc); // Draw the game board with the initialized gc
 
         fallTimeline = new Timeline(new KeyFrame(FALL_DURATION, event -> {
             if (!isPaused) {
@@ -380,6 +391,61 @@ public class HiddenGemsApplication extends Application {
         boardOffsetY = (height - NUM_ROWS * cellSize) / 2;
     }
 
+    private void startBorderAnimation() {
+        // Timeline to animate the border colors continuously
+        borderAnimation = new Timeline(
+                new KeyFrame(Duration.ZERO, e -> updateBorderColors()),
+                new KeyFrame(Duration.millis(16)) // Approximately 60 FPS
+        );
+        borderAnimation.setCycleCount(Timeline.INDEFINITE);
+        borderAnimation.play();
+    }
+
+    private void updateBorderColors() {
+        // Cycle through hues to animate the border colors
+        hue1 = (hue1 + 1) % 360;
+        hue2 = (hue2 + 1) % 360;
+
+        // Update border colors based on the new hue values
+        borderColor1 = Color.hsb(hue1, 1.0, 1.0);
+        borderColor2 = Color.hsb(hue2, 1.0, 1.0);
+
+        // Redraw only the border with the updated colors
+        drawBorder(gc);
+    }
+
+    private void drawBorder(GraphicsContext gc) {
+        double borderWidth = 10; // Width of the border
+
+        // Set up a gradient for the border
+        LinearGradient borderGradient = new LinearGradient(
+                0, 0, width, height,
+                true,
+                CycleMethod.REFLECT,
+                new Stop(0, borderColor1),
+                new Stop(1, borderColor2)
+        );
+
+        // Set the fill to the border gradient
+        this.gc.setFill(borderGradient);
+
+        // Draw the top border
+        this.gc.fillRect(boardOffsetX - borderWidth, boardOffsetY - borderWidth,
+                NUM_COLS * cellSize + 2 * borderWidth, borderWidth);
+
+        // Draw the bottom border
+        this.gc.fillRect(boardOffsetX - borderWidth, boardOffsetY + NUM_ROWS * cellSize,
+                NUM_COLS * cellSize + 2 * borderWidth, borderWidth);
+
+        // Draw the left border
+        this.gc.fillRect(boardOffsetX - borderWidth, boardOffsetY,
+                borderWidth, NUM_ROWS * cellSize);
+
+        // Draw the right border
+        this.gc.fillRect(boardOffsetX + NUM_COLS * cellSize, boardOffsetY,
+                borderWidth, NUM_ROWS * cellSize);
+    }
+
     private void drawGameBoard(GraphicsContext gc) {
         // Задаване на фоновия градиент
         LinearGradient backgroundGradient = new LinearGradient(
@@ -392,21 +458,14 @@ public class HiddenGemsApplication extends Application {
         gc.setFill(backgroundGradient);
         gc.fillRect(0, 0, width, height);
 
-        // Рисуване на неоновия фон на рамката с магента и циан градиент
-        double borderWidth = 10;  // Ширина на рамката
-        LinearGradient borderGradient = new LinearGradient(
-                0, 0, width, height,
-                true,  // Този параметър прави градиента цикличен
-                CycleMethod.REFLECT,
-                new Stop(0, Color.MAGENTA),  // Магента
-                new Stop(1, Color.CYAN)      // Циан
-        );
-        gc.setFill(borderGradient);
-        gc.fillRect(boardOffsetX - borderWidth, boardOffsetY - borderWidth,
-                NUM_COLS * cellSize + 2 * borderWidth, NUM_ROWS * cellSize + 2 * borderWidth);
+        // Border gradient using the animated colors
+        // Draw border initially
+        drawBorder(gc);
 
-        // Изчистване на предишното визуализиране на борда
+        // Clear the game board
         gc.clearRect(boardOffsetX, boardOffsetY, NUM_COLS * cellSize, NUM_ROWS * cellSize);
+
+        // Other game board drawing logic (cells, grid lines, etc.) remains the same.
 
         // Рисуване на фона на борда
         gc.setFill(Color.LIGHTSKYBLUE.brighter()); // Използвайте подходящ цвят за клетките
