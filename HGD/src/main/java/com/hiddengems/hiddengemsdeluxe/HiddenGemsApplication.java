@@ -424,7 +424,8 @@ public class HiddenGemsApplication extends Application {
     }
 
     private void drawBorder(GraphicsContext gc) {
-        double borderWidth = 10; // Width of the border
+        // Set border width as a fraction of cell size (e.g., 10% of cellSize)
+        double borderWidth = cellSize * 0.3; // 10% of cell size
 
         // Set up a gradient for the border
         LinearGradient borderGradient = new LinearGradient(
