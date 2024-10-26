@@ -522,9 +522,9 @@ public class HiddenGemsApplication extends Application {
         double textWidth = text.getLayoutBounds().getWidth();
         double textHeight = text.getLayoutBounds().getHeight();
 
-        // Calculate score position
-        double scoreX = boardOffsetX - textWidth - 20; // 20 pixels away from the left edge
-        double scoreY = boardOffsetY + cellSize / 2 + textHeight / 2; // Vertically centered on the cell
+        // Calculate score position based on cell size
+        double scoreX = boardOffsetX - textWidth - (cellSize * 0.5); // Center it with respect to the cell size
+        double scoreY = boardOffsetY + (cellSize * 0.5) + (textHeight / 2); // Vertically center within the cell
 
         // Draw shadow (black border) for the score text
         gc.setFill(Color.BLACK);
