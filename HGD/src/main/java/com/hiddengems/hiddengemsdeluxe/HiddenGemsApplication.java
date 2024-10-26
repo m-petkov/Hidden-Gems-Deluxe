@@ -46,6 +46,7 @@ public class HiddenGemsApplication extends Application {
     private Timeline moveTimeline;
     private Timeline fastFallTimeline;
     private Timeline borderAnimation;
+    private Timeline pulsatingTimeline;
     private double hue1 = 300; // Initial hue for color 1
     private double hue2 = 180; // Initial hue for color 2
 
@@ -80,6 +81,12 @@ public class HiddenGemsApplication extends Application {
 
         calculateSizes();
         drawGameBoard(gc); // Draw the game board with the initialized gc
+
+        pulsatingTimeline = new Timeline(new KeyFrame(Duration.millis(100), event -> {
+            drawGameBoard(gc); // Redraw the game board on each tick
+        }));
+        pulsatingTimeline.setCycleCount(Timeline.INDEFINITE);
+        pulsatingTimeline.play();
 
         fallTimeline = new Timeline(new KeyFrame(FALL_DURATION, event -> {
             if (!isPaused) {
@@ -536,7 +543,9 @@ public class HiddenGemsApplication extends Application {
             );
 
             // Create pulsating effect by varying font size
-            double pauseFontSize = this.pauseFontSize + Math.sin(System.currentTimeMillis() * 0.005) * 5;
+            double pulsatingEffect = Math.sin(System.currentTimeMillis() * 0.005); // Value between -1 and 1
+            double pauseFontSize = 30 + pulsatingEffect * 5; // Pulsate around 30 pixels
+
             gc.setFont(new javafx.scene.text.Font("Comic Sans MS", pauseFontSize));
 
             // Calculate PAUSE text width and height
