@@ -447,31 +447,27 @@ public class HiddenGemsApplication extends Application {
     }
 
     private void drawGameBoard(GraphicsContext gc) {
-        // Задаване на фоновия градиент
+        // Background gradient
         LinearGradient backgroundGradient = new LinearGradient(
                 0, 0, width, height,
-                false,
-                CycleMethod.NO_CYCLE,
-                new Stop(0, Color.MIDNIGHTBLUE),  // Неоново синьо
-                new Stop(1, Color.DEEPPINK)       // Неоново розово
+                false, CycleMethod.NO_CYCLE,
+                new Stop(0, Color.MIDNIGHTBLUE),
+                new Stop(1, Color.DEEPPINK)
         );
         gc.setFill(backgroundGradient);
         gc.fillRect(0, 0, width, height);
 
-        // Border gradient using the animated colors
-        // Draw border initially
+        // Draw border
         drawBorder(gc);
 
-        // Clear the game board
+        // Clear the game board area
         gc.clearRect(boardOffsetX, boardOffsetY, NUM_COLS * cellSize, NUM_ROWS * cellSize);
 
-        // Other game board drawing logic (cells, grid lines, etc.) remains the same.
-
-        // Рисуване на фона на борда
-        gc.setFill(Color.LIGHTSKYBLUE.brighter()); // Използвайте подходящ цвят за клетките
+        // Draw game board background
+        gc.setFill(Color.LIGHTSKYBLUE.brighter());
         gc.fillRect(boardOffsetX, boardOffsetY, NUM_COLS * cellSize, NUM_ROWS * cellSize);
 
-        // Рисуване на съществуващите камъни на борда
+        // Draw existing stones on the board
         for (int row = 0; row < NUM_ROWS; row++) {
             for (int col = 0; col < NUM_COLS; col++) {
                 char color = gameBoard[row][col];
@@ -479,15 +475,15 @@ public class HiddenGemsApplication extends Application {
                     double x = boardOffsetX + col * cellSize;
                     double y = boardOffsetY + row * cellSize;
                     drawCell(gc, color, x, y, cellSize);
-                } else if (color == 'M') { // Рисувай магента клетки
+                } else if (color == 'M') {
                     double x = boardOffsetX + col * cellSize;
                     double y = boardOffsetY + row * cellSize;
-                    drawCell(gc, 'M', x, y, cellSize); // Може би използвайте специален метод, ако е необходимо
+                    drawCell(gc, 'M', x, y, cellSize);
                 }
             }
         }
 
-        // Рисуване на линиите на мрежата с контрастен цвят
+        // Draw grid lines with a contrasting color
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(2);
         for (int row = 0; row <= NUM_ROWS; row++) {
@@ -499,8 +495,7 @@ public class HiddenGemsApplication extends Application {
             gc.strokeLine(x, boardOffsetY, x, boardOffsetY + NUM_ROWS * cellSize);
         }
 
-        // Рисуване на текста за резултата в бяло
-        gc.setFill(Color.WHITE);  // Променен на бял цвят
+        // Draw "Score" with a neon glow effect and black border
         gc.setFont(new javafx.scene.text.Font("Comic Sans MS", scoreFontSize));
         String scoreText = "Score: " + score;
         Text text = new Text(scoreText);
@@ -508,33 +503,53 @@ public class HiddenGemsApplication extends Application {
         double textWidth = text.getLayoutBounds().getWidth();
         double textHeight = text.getLayoutBounds().getHeight();
 
-        // Позициониране на текста
-        double scoreX = boardOffsetX - textWidth - 20; // 20 пиксела разстояние от рамката
-        double scoreY = boardOffsetY + cellSize / 2 + textHeight / 2; // Средата на клетката по вертикала
+        // Calculate score position
+        double scoreX = boardOffsetX - textWidth - 20; // 20 pixels away from the left edge
+        double scoreY = boardOffsetY + cellSize / 2 + textHeight / 2; // Vertically centered on the cell
 
-        gc.fillText(scoreText, scoreX, scoreY);
+        // Draw shadow (black border) for the score text
+        gc.setFill(Color.BLACK);
+        gc.fillText(scoreText, scoreX + 2, scoreY + 2);  // Black shadow offset
+        gc.setFill(Color.CYAN);
+        gc.fillText(scoreText, scoreX, scoreY);           // Light blue text
 
-        // Рисуване на падащите камъни
+        // Draw falling stone if present
         if (fallingStone != null) {
             fallingStone.draw(gc, boardOffsetX, boardOffsetY, cellSize);
         }
 
-        // Рисуване на предварителния изглед на следващия камък
+        // Draw next stone preview if present
         if (nextStone != null) {
             double previewOffsetX = boardOffsetX + NUM_COLS * cellSize + cellSize;
             double previewOffsetY = boardOffsetY;
             nextStone.drawPreview(gc, previewOffsetX, previewOffsetY, cellSize);
         }
 
-        // Рисуване на текста "PAUSE" ако играта е на пауза в черно
+        // Draw "PAUSE" text with gradient, animation, and black border if the game is paused
         if (isPaused) {
-            gc.setFill(Color.BLACK);  // Променен на черен цвят
+            // Set up a neon-like gradient effect
+            LinearGradient pauseGradient = new LinearGradient(
+                    0, 0, 1, 0,
+                    true, CycleMethod.REPEAT,
+                    new Stop(0, Color.DEEPPINK),
+                    new Stop(1, Color.CYAN)
+            );
+
+            // Create pulsating effect by varying font size
+            double pauseFontSize = this.pauseFontSize + Math.sin(System.currentTimeMillis() * 0.005) * 5;
             gc.setFont(new javafx.scene.text.Font("Comic Sans MS", pauseFontSize));
+
+            // Calculate PAUSE text width and height
             Text pauseText = new Text("PAUSE");
             pauseText.setFont(gc.getFont());
             double pauseTextWidth = pauseText.getLayoutBounds().getWidth();
             double pauseTextHeight = pauseText.getLayoutBounds().getHeight();
-            gc.fillText("PAUSE", width / 2 - pauseTextWidth / 2, height / 2 + pauseTextHeight / 4);
+
+            // Draw shadow (black border) for the PAUSE text
+            gc.setFill(Color.BLACK);
+            gc.fillText("PAUSE", width / 2 - pauseTextWidth / 2 + 2, height / 2 + pauseTextHeight / 4 + 2); // Black shadow offset
+            gc.setFill(pauseGradient);
+            gc.fillText("PAUSE", width / 2 - pauseTextWidth / 2, height / 2 + pauseTextHeight / 4); // Gradient text
         }
     }
 
