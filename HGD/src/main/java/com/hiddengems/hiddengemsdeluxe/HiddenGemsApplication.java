@@ -173,6 +173,7 @@ public class HiddenGemsApplication extends Application {
         scene.widthProperty().addListener((obs, oldVal, newVal) -> {
             width = newVal.intValue();
             canvas.setWidth(width);
+            updateGameDimensions();
             calculateSizes();
             drawGameBoard(gc);
         });
@@ -180,6 +181,7 @@ public class HiddenGemsApplication extends Application {
         scene.heightProperty().addListener((obs, oldVal, newVal) -> {
             height = newVal.intValue();
             canvas.setHeight(height);
+            updateGameDimensions();
             calculateSizes();
             drawGameBoard(gc);
         });
@@ -453,6 +455,15 @@ public class HiddenGemsApplication extends Application {
                 borderWidth, NUM_ROWS * cellSize);
     }
 
+    private void updateGameDimensions() {
+        // Recalculate cell size based on window size
+        cellSize = Math.min(width / NUM_COLS, height / NUM_ROWS); // Maintain aspect ratio
+        boardOffsetX = (width - NUM_COLS * cellSize) / 2; // Center horizontally
+        boardOffsetY = (height - NUM_ROWS * cellSize) / 2; // Center vertically
+
+        drawGameBoard(gc); // Redraw the game board with new dimensions
+    }
+
     private void drawGameBoard(GraphicsContext gc) {
         // Background gradient
         LinearGradient backgroundGradient = new LinearGradient(
@@ -542,9 +553,9 @@ public class HiddenGemsApplication extends Application {
                     new Stop(1, Color.CYAN)
             );
 
-            // Create pulsating effect by varying font size
+            // Calculate a font size based on the cell size and pulsate it
             double pulsatingEffect = Math.sin(System.currentTimeMillis() * 0.005); // Value between -1 and 1
-            double pauseFontSize = 30 + pulsatingEffect * 5; // Pulsate around 30 pixels
+            double pauseFontSize = Math.max(20, cellSize * 0.5 * 4 + pulsatingEffect * 5); // Pulsate around 4 cells
 
             gc.setFont(new javafx.scene.text.Font("Comic Sans MS", pauseFontSize));
 
@@ -554,11 +565,15 @@ public class HiddenGemsApplication extends Application {
             double pauseTextWidth = pauseText.getLayoutBounds().getWidth();
             double pauseTextHeight = pauseText.getLayoutBounds().getHeight();
 
+            // Center the PAUSE text based on updated sizes
+            double pauseX = (width - pauseTextWidth) / 2; // Center X
+            double pauseY = (height - pauseTextHeight) / 2; // Center Y
+
             // Draw shadow (black border) for the PAUSE text
             gc.setFill(Color.BLACK);
-            gc.fillText("PAUSE", width / 2 - pauseTextWidth / 2 + 2, height / 2 + pauseTextHeight / 4 + 2); // Black shadow offset
+            gc.fillText("PAUSE", pauseX + 2, pauseY + 2); // Black shadow offset
             gc.setFill(pauseGradient);
-            gc.fillText("PAUSE", width / 2 - pauseTextWidth / 2, height / 2 + pauseTextHeight / 4); // Gradient text
+            gc.fillText("PAUSE", pauseX, pauseY); // Gradient text
         }
     }
 
