@@ -417,8 +417,8 @@ public class HiddenGemsApplication extends Application {
         borderColor1 = Color.hsb(hue1, 1.0, 1.0);
         borderColor2 = Color.hsb(hue2, 1.0, 1.0);
 
-        // Redraw only the border with the updated colors
-        drawBorder(gc);
+        // Redraw the entire game board with the updated border colors
+        drawGameBoard(gc);
     }
 
     private void drawBorder(GraphicsContext gc) {
@@ -434,22 +434,22 @@ public class HiddenGemsApplication extends Application {
         );
 
         // Set the fill to the border gradient
-        this.gc.setFill(borderGradient);
+        gc.setFill(borderGradient);
 
         // Draw the top border
-        this.gc.fillRect(boardOffsetX - borderWidth, boardOffsetY - borderWidth,
+        gc.fillRect(boardOffsetX - borderWidth, boardOffsetY - borderWidth,
                 NUM_COLS * cellSize + 2 * borderWidth, borderWidth);
 
         // Draw the bottom border
-        this.gc.fillRect(boardOffsetX - borderWidth, boardOffsetY + NUM_ROWS * cellSize,
+        gc.fillRect(boardOffsetX - borderWidth, boardOffsetY + NUM_ROWS * cellSize,
                 NUM_COLS * cellSize + 2 * borderWidth, borderWidth);
 
         // Draw the left border
-        this.gc.fillRect(boardOffsetX - borderWidth, boardOffsetY,
+        gc.fillRect(boardOffsetX - borderWidth, boardOffsetY,
                 borderWidth, NUM_ROWS * cellSize);
 
         // Draw the right border
-        this.gc.fillRect(boardOffsetX + NUM_COLS * cellSize, boardOffsetY,
+        gc.fillRect(boardOffsetX + NUM_COLS * cellSize, boardOffsetY,
                 borderWidth, NUM_ROWS * cellSize);
     }
 
@@ -464,7 +464,7 @@ public class HiddenGemsApplication extends Application {
         gc.setFill(backgroundGradient);
         gc.fillRect(0, 0, width, height);
 
-        // Draw border
+        // Draw border with the updated colors
         drawBorder(gc);
 
         // Clear the game board area
@@ -561,7 +561,6 @@ public class HiddenGemsApplication extends Application {
             gc.fillText("PAUSE", width / 2 - pauseTextWidth / 2, height / 2 + pauseTextHeight / 4); // Gradient text
         }
     }
-
 
     private void drawCell(GraphicsContext gc, char color, double x, double y, double size) {
         // Радиален градиент за по-реалистичен триизмерен ефект
