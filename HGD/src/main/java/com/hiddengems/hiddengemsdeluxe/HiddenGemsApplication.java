@@ -47,12 +47,15 @@ public class HiddenGemsApplication extends Application {
     private Timeline fastFallTimeline;
     private Timeline borderAnimation;
     private Timeline pulsatingTimeline;
-    private double hue1 = 300; // Initial hue for color 1
-    private double hue2 = 180; // Initial hue for color 2
+    // Initial hues for green and gray
+    private double hue1 = 120; // Initial hue for bright neon green
+    private double hue2 = 210; // Initial hue for dark blue
 
     // Class fields for the border colors
-    private Color borderColor1 = Color.hsb(hue1, 1.0, 1.0);
-    private Color borderColor2 = Color.hsb(hue2, 1.0, 1.0);
+    private Color borderColor1 = Color.hsb(hue1, 0.9, 0.5); // Darker neon green
+    private Color borderColor2 = Color.hsb(hue2, 0.7, 0.2); // Darker grayish-green
+
+    // Add additional color for dark blue or gray if needed
     private boolean isFastFalling = false; // За контрол на бързото падане
 
     private double scoreFontSize;
@@ -173,7 +176,6 @@ public class HiddenGemsApplication extends Application {
         scene.widthProperty().addListener((obs, oldVal, newVal) -> {
             width = newVal.intValue();
             canvas.setWidth(width);
-            updateGameDimensions();
             calculateSizes();
             drawGameBoard(gc);
         });
@@ -181,7 +183,6 @@ public class HiddenGemsApplication extends Application {
         scene.heightProperty().addListener((obs, oldVal, newVal) -> {
             height = newVal.intValue();
             canvas.setHeight(height);
-            updateGameDimensions();
             calculateSizes();
             drawGameBoard(gc);
         });
@@ -403,29 +404,51 @@ public class HiddenGemsApplication extends Application {
     private void startBorderAnimation() {
         // Timeline to animate the border colors continuously
         borderAnimation = new Timeline(
-                new KeyFrame(Duration.ZERO, e -> updateBorderColors()),
-                new KeyFrame(Duration.millis(16)) // Approximately 60 FPS
+                new KeyFrame(Duration.millis(50), e -> updateBorderColors()) // Adjusted to 50 ms for smoother transitions
         );
         borderAnimation.setCycleCount(Timeline.INDEFINITE);
         borderAnimation.play();
     }
 
-    private void updateBorderColors() {
-        // Cycle through hues to animate the border colors
-        hue1 = (hue1 + 1) % 360;
-        hue2 = (hue2 + 1) % 360;
+    private Color[] borderColors = {
+            Color.DARKGREEN,  // Dark Green
+            Color.DARKBLUE,   // Dark Blue
+            Color.DARKCYAN    // Dark Cyan
+    };
+    private int currentColorIndex = 0; // Index to track current color
 
-        // Update border colors based on the new hue values
-        borderColor1 = Color.hsb(hue1, 1.0, 1.0);
-        borderColor2 = Color.hsb(hue2, 1.0, 1.0);
+    private double transitionProgress = 0; // Progress for the transition
+
+    private void updateBorderColors() {
+        transitionProgress += 0.02; // Increment progress
+
+        if (transitionProgress >= 1) {
+            // Move to the next color when the transition is complete
+            currentColorIndex = (currentColorIndex + 1) % borderColors.length;
+            transitionProgress = 0; // Reset progress
+        }
+
+        // Get the next color
+        Color nextColor = borderColors[currentColorIndex];
+
+        // Interpolate between current color and next color
+        borderColor1 = interpolateColor(borderColors[(currentColorIndex + 1) % borderColors.length], nextColor, transitionProgress);
+        borderColor2 = interpolateColor(nextColor, borderColors[(currentColorIndex + 2) % borderColors.length], transitionProgress);
 
         // Redraw the entire game board with the updated border colors
         drawGameBoard(gc);
     }
 
+    // Interpolation method to blend colors
+    private Color interpolateColor(Color colorA, Color colorB, double progress) {
+        double red = colorA.getRed() + (colorB.getRed() - colorA.getRed()) * progress;
+        double green = colorA.getGreen() + (colorB.getGreen() - colorA.getGreen()) * progress;
+        double blue = colorA.getBlue() + (colorB.getBlue() - colorA.getBlue()) * progress;
+        return Color.color(red, green, blue);
+    }
+
     private void drawBorder(GraphicsContext gc) {
-        // Set border width as a fraction of cell size (e.g., 10% of cellSize)
-        double borderWidth = cellSize * 0.3; // 10% of cell size
+        double borderWidth = cellSize * 0.3;
 
         // Set up a gradient for the border
         LinearGradient borderGradient = new LinearGradient(
@@ -456,34 +479,27 @@ public class HiddenGemsApplication extends Application {
                 borderWidth, NUM_ROWS * cellSize);
     }
 
-    private void updateGameDimensions() {
-        // Recalculate cell size based on window size
-        cellSize = Math.min(width / NUM_COLS, height / NUM_ROWS); // Maintain aspect ratio
-        boardOffsetX = (width - NUM_COLS * cellSize) / 2; // Center horizontally
-        boardOffsetY = (height - NUM_ROWS * cellSize) / 2; // Center vertically
-
-        drawGameBoard(gc); // Redraw the game board with new dimensions
-    }
-
     private void drawGameBoard(GraphicsContext gc) {
-        // Background gradient
+        // Create a dark green background gradient
         LinearGradient backgroundGradient = new LinearGradient(
-                0, 0, width, height,
-                false, CycleMethod.NO_CYCLE,
-                new Stop(0, Color.MIDNIGHTBLUE),
-                new Stop(1, Color.DEEPPINK)
+                0, 0, 0, 1,
+                true, CycleMethod.NO_CYCLE,
+                new Stop(0, Color.BLACK),
+                new Stop(1, Color.DARKGREEN)
         );
         gc.setFill(backgroundGradient);
         gc.fillRect(0, 0, width, height);
 
-        // Draw border with the updated colors
+        // Optional: Draw falling code effect
+        drawFallingCode(gc);
+
+        // Draw border with the updated colors before clearing the game area
         drawBorder(gc);
 
         // Clear the game board area
         gc.clearRect(boardOffsetX, boardOffsetY, NUM_COLS * cellSize, NUM_ROWS * cellSize);
 
-        // Draw game board background
-        gc.setFill(Color.LIGHTSKYBLUE.brighter());
+        gc.setFill(Color.LIMEGREEN);
         gc.fillRect(boardOffsetX, boardOffsetY, NUM_COLS * cellSize, NUM_ROWS * cellSize);
 
         // Draw existing stones on the board
@@ -514,8 +530,8 @@ public class HiddenGemsApplication extends Application {
             gc.strokeLine(x, boardOffsetY, x, boardOffsetY + NUM_ROWS * cellSize);
         }
 
-        // Draw "Score" with a neon glow effect and black border
-        gc.setFont(new javafx.scene.text.Font("Comic Sans MS", scoreFontSize));
+        // Draw "Score" with a green glow effect
+        gc.setFont(new javafx.scene.text.Font("Courier New", scoreFontSize));
         String scoreText = "Score: " + score;
         Text text = new Text(scoreText);
         text.setFont(gc.getFont());
@@ -529,8 +545,8 @@ public class HiddenGemsApplication extends Application {
         // Draw shadow (black border) for the score text
         gc.setFill(Color.BLACK);
         gc.fillText(scoreText, scoreX + 2, scoreY + 2);  // Black shadow offset
-        gc.setFill(Color.CYAN);
-        gc.fillText(scoreText, scoreX, scoreY);           // Light blue text
+        gc.setFill(Color.LIGHTGREEN); // Matrix-style text color
+        gc.fillText(scoreText, scoreX, scoreY);           // Light green text
 
         // Draw falling stone if present
         if (fallingStone != null) {
@@ -544,21 +560,22 @@ public class HiddenGemsApplication extends Application {
             nextStone.drawPreview(gc, previewOffsetX, previewOffsetY, cellSize);
         }
 
-        // Draw "PAUSE" text with gradient, animation, and black border if the game is paused
+        // Draw "PAUSE" text with gradient and black border if the game is paused
         if (isPaused) {
-            // Set up a neon-like gradient effect
+            // Set up a darker, Matrix-like gradient effect for the PAUSE text
             LinearGradient pauseGradient = new LinearGradient(
                     0, 0, 1, 0,
                     true, CycleMethod.REPEAT,
-                    new Stop(0, Color.DEEPPINK),
-                    new Stop(1, Color.CYAN)
+                    new Stop(0, Color.rgb(0, 30, 0)),       // Very dark green
+                    new Stop(0.5, Color.rgb(0, 40, 40)),    // Deep teal
+                    new Stop(1, Color.rgb(0, 15, 30))       // Dark cyan-blue
             );
 
             // Calculate a font size based on the cell size and pulsate it
             double pulsatingEffect = Math.sin(System.currentTimeMillis() * 0.005); // Value between -1 and 1
             double pauseFontSize = Math.max(20, cellSize * 0.5 * 4 + pulsatingEffect * 5); // Pulsate around 4 cells
 
-            gc.setFont(new javafx.scene.text.Font("Comic Sans MS", pauseFontSize));
+            gc.setFont(new javafx.scene.text.Font("Courier New", pauseFontSize));
 
             // Calculate PAUSE text width and height
             Text pauseText = new Text("PAUSE");
@@ -575,6 +592,19 @@ public class HiddenGemsApplication extends Application {
             gc.fillText("PAUSE", pauseX + 2, pauseY + 2); // Black shadow offset
             gc.setFill(pauseGradient);
             gc.fillText("PAUSE", pauseX, pauseY); // Gradient text
+        }
+    }
+
+    private void drawFallingCode(GraphicsContext gc) {
+        gc.setFont(new javafx.scene.text.Font("Courier New", 12));
+        String[] characters = {"0", "1", "A", "B", "C", "D", "E", "F"}; // Characters to fall
+        int numColumns = (int) Math.ceil(width / 15); // Adjust based on font size
+
+        for (int col = 0; col < numColumns; col++) {
+            int fallHeight = (int) (Math.random() * height);
+            String fallingCharacter = characters[(int) (Math.random() * characters.length)];
+            gc.setFill(Color.GREEN); // Color for falling code
+            gc.fillText(fallingCharacter, col * 15, fallHeight); // Draw falling character
         }
     }
 
