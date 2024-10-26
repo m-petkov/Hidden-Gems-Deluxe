@@ -499,7 +499,7 @@ public class HiddenGemsApplication extends Application {
         // Clear the game board area
         gc.clearRect(boardOffsetX, boardOffsetY, NUM_COLS * cellSize, NUM_ROWS * cellSize);
 
-        gc.setFill(Color.LIMEGREEN);
+        gc.setFill(Color.DARKSEAGREEN);
         gc.fillRect(boardOffsetX, boardOffsetY, NUM_COLS * cellSize, NUM_ROWS * cellSize);
 
         // Draw existing stones on the board
