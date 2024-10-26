@@ -562,13 +562,11 @@ public class HiddenGemsApplication extends Application {
 
         // Draw "PAUSE" text with gradient and black border if the game is paused
         if (isPaused) {
-            // Set up a darker, Matrix-like gradient effect for the PAUSE text
             LinearGradient pauseGradient = new LinearGradient(
                     0, 0, 1, 0,
-                    true, CycleMethod.REPEAT,
+                    true, CycleMethod.NO_CYCLE,
                     new Stop(0, Color.rgb(0, 30, 0)),       // Very dark green
-                    new Stop(0.5, Color.rgb(0, 40, 40)),    // Deep teal
-                    new Stop(1, Color.rgb(0, 15, 30))       // Dark cyan-blue
+                    new Stop(1, Color.rgb(0, 40, 40))       // Dark teal
             );
 
             // Calculate a font size based on the cell size and pulsate it
