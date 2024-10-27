@@ -560,8 +560,9 @@ public class HiddenGemsApplication extends Application {
             nextStone.drawPreview(gc, previewOffsetX, previewOffsetY, cellSize);
         }
 
-        // Draw "PAUSE" text with gradient and black border if the game is paused
+        // Draw "PAUSE" text with gradient and shadow if the game is paused
         if (isPaused) {
+            // Darker Matrix-style green gradient for the PAUSE text
             LinearGradient pauseGradient = new LinearGradient(
                     0, 0, 1, 0,
                     true, CycleMethod.NO_CYCLE,
@@ -575,7 +576,7 @@ public class HiddenGemsApplication extends Application {
 
             gc.setFont(new javafx.scene.text.Font("Courier New", pauseFontSize));
 
-            // Calculate PAUSE text width and height
+            // Create a Text object to calculate dimensions
             Text pauseText = new Text("PAUSE");
             pauseText.setFont(gc.getFont());
             double pauseTextWidth = pauseText.getLayoutBounds().getWidth();
@@ -585,11 +586,19 @@ public class HiddenGemsApplication extends Application {
             double pauseX = (width - pauseTextWidth) / 2; // Center X
             double pauseY = (height - pauseTextHeight) / 2; // Center Y
 
-            // Draw shadow (black border) for the PAUSE text
-            gc.setFill(Color.BLACK);
-            gc.fillText("PAUSE", pauseX + 2, pauseY + 2); // Black shadow offset
+            // Calculate shadow position using text dimensions for centering
+            double shadowOffsetX = 2; // X offset for shadow
+            double shadowOffsetY = 2; // Y offset for shadow
+
+            // Draw a larger, darker shadow for the PAUSE text
+            gc.setGlobalAlpha(0.7); // Slightly reduced opacity for a stronger shadow
+            gc.setFill(Color.rgb(0, 40, 0)); // Dark green shadow
+            gc.fillText("PAUSE", pauseX + shadowOffsetX, pauseY + shadowOffsetY); // Larger offset for a bolder shadow
+
+            // Draw the main PAUSE text with the darker neon green gradient
+            gc.setGlobalAlpha(1.0); // Reset alpha to full opacity for main text
             gc.setFill(pauseGradient);
-            gc.fillText("PAUSE", pauseX, pauseY); // Gradient text
+            gc.fillText("PAUSE", pauseX, pauseY);
         }
     }
 
