@@ -25,7 +25,13 @@ public class HiddenGemsApplication extends Application {
     private static final Duration FALL_DURATION = Duration.seconds(1);
     private static final Duration FAST_FALL_DURATION = Duration.seconds(0.1);
     private static final Duration MOVE_DURATION = Duration.millis(100); // Duration for left/right movement
+    private static final int SCORE_INCREASE_THRESHOLD = 20; // Points needed for each speed-up
+    private static final int MAX_SPEED_UP_COUNT = 5; // Max number of times to reduce fall duration
+    private static final double FALL_DURATION_DECREMENT = 0.1; // Amount to reduce fall duration by
     private int score = 0;
+
+    private int speedUpCount = 0; // Tracks how many times the fall duration has been reduced
+    private Duration currentFallDuration = FALL_DURATION; // Holds the current fall duration
 
     private Random random = new Random();
     private char[][] gameBoard = new char[NUM_ROWS][NUM_COLS];
@@ -411,6 +417,29 @@ public class HiddenGemsApplication extends Application {
         }
         makeStonesFall(); // Преместете камъните след изчистването
         score += 1; // Добавяне на точки
+
+        // Check if the score has increased by a multiple of SCORE_INCREASE_THRESHOLD
+        if (score / SCORE_INCREASE_THRESHOLD > speedUpCount && speedUpCount < MAX_SPEED_UP_COUNT) {
+            speedUpCount++;
+            currentFallDuration = currentFallDuration.subtract(Duration.seconds(FALL_DURATION_DECREMENT));
+            updateFallTimelineDuration();
+        }
+    }
+
+    private void updateFallTimelineDuration() {
+        fallTimeline.stop();
+        fallTimeline = new Timeline(new KeyFrame(currentFallDuration, event -> {
+            if (!isPaused) {
+                if (fallingStone == null) {
+                    placeNewStones();
+                } else {
+                    moveStonesDown();
+                }
+                drawGameBoard(gc);
+            }
+        }));
+        fallTimeline.setCycleCount(Timeline.INDEFINITE);
+        fallTimeline.play();
     }
 
     private void makeStonesFall() {
@@ -568,39 +597,71 @@ public class HiddenGemsApplication extends Application {
         // Set font and prepare score text
         gc.setFont(new javafx.scene.text.Font("Courier New", scoreFontSize));
         String scoreText = "Score: " + score;
-        Text text = new Text(scoreText);
-        text.setFont(gc.getFont());
+        Text scoreDisplayText = new Text(scoreText);
+        scoreDisplayText.setFont(gc.getFont());
 
         // Calculate text width and height
-        double textWidth = text.getLayoutBounds().getWidth();
-        double textHeight = text.getLayoutBounds().getHeight();
+        double scoreTextWidth = scoreDisplayText.getLayoutBounds().getWidth();
+        double scoreTextHeight = scoreDisplayText.getLayoutBounds().getHeight();
 
-        // Calculate position based on cell size
-        double scoreX = boardOffsetX - textWidth - (cellSize * 0.5);
-        double scoreY = boardOffsetY + (cellSize * 0.5) + (textHeight / 2);
+        // Calculate position for score text
+        double scoreX = boardOffsetX - scoreTextWidth - (cellSize * 0.5);
+        double scoreY = boardOffsetY + (cellSize * 0.5) + (scoreTextHeight / 2);
 
-        // Create a refined glow effect by layering slightly offset text with higher visibility colors
-        gc.setFill(Color.web("#145A32"));  // Dark green for outer glow layer
+        // Draw glowing effect for score text
+        gc.setFill(Color.web("#145A32"));
         gc.fillText(scoreText, scoreX - 1.5, scoreY - 1.5);
         gc.fillText(scoreText, scoreX + 1.5, scoreY - 1.5);
         gc.fillText(scoreText, scoreX - 1.5, scoreY + 1.5);
         gc.fillText(scoreText, scoreX + 1.5, scoreY + 1.5);
 
-        gc.setFill(Color.web("#1E8449"));  // Mid-tone green for middle glow layer
+        gc.setFill(Color.web("#1E8449"));
         gc.fillText(scoreText, scoreX - 0.8, scoreY - 0.8);
         gc.fillText(scoreText, scoreX + 0.8, scoreY - 0.8);
         gc.fillText(scoreText, scoreX - 0.8, scoreY + 0.8);
         gc.fillText(scoreText, scoreX + 0.8, scoreY + 0.8);
 
-        gc.setFill(Color.web("#2ECC71"));  // Light green for inner glow layer
+        gc.setFill(Color.web("#2ECC71"));
         gc.fillText(scoreText, scoreX - 0.3, scoreY - 0.3);
         gc.fillText(scoreText, scoreX + 0.3, scoreY - 0.3);
         gc.fillText(scoreText, scoreX - 0.3, scoreY + 0.3);
         gc.fillText(scoreText, scoreX + 0.3, scoreY + 0.3);
 
-        // Draw main text with neon green
+        // Main score text
         gc.setFill(Color.LIMEGREEN);
         gc.fillText(scoreText, scoreX, scoreY);
+
+        // Draw Level text under the Score text
+        String levelText = "Level: " + speedUpCount;
+        Text levelDisplayText = new Text(levelText);
+        levelDisplayText.setFont(gc.getFont());
+
+        // Position level text directly below score text
+        double levelTextY = scoreY + scoreTextHeight + 5; // Adjust the "+ 5" for spacing
+        double levelTextWidth = levelDisplayText.getLayoutBounds().getWidth();
+
+        // Draw glowing effect for level text, same as score
+        gc.setFill(Color.web("#145A32"));
+        gc.fillText(levelText, scoreX - 1.5, levelTextY - 1.5);
+        gc.fillText(levelText, scoreX + 1.5, levelTextY - 1.5);
+        gc.fillText(levelText, scoreX - 1.5, levelTextY + 1.5);
+        gc.fillText(levelText, scoreX + 1.5, levelTextY + 1.5);
+
+        gc.setFill(Color.web("#1E8449"));
+        gc.fillText(levelText, scoreX - 0.8, levelTextY - 0.8);
+        gc.fillText(levelText, scoreX + 0.8, levelTextY - 0.8);
+        gc.fillText(levelText, scoreX - 0.8, levelTextY + 0.8);
+        gc.fillText(levelText, scoreX + 0.8, levelTextY + 0.8);
+
+        gc.setFill(Color.web("#2ECC71"));
+        gc.fillText(levelText, scoreX - 0.3, levelTextY - 0.3);
+        gc.fillText(levelText, scoreX + 0.3, levelTextY - 0.3);
+        gc.fillText(levelText, scoreX - 0.3, levelTextY + 0.3);
+        gc.fillText(levelText, scoreX + 0.3, levelTextY + 0.3);
+
+        // Main level text
+        gc.setFill(Color.LIMEGREEN);
+        gc.fillText(levelText, scoreX, levelTextY);
 
         // Draw falling stone if present
         if (fallingStone != null) {
@@ -620,37 +681,30 @@ public class HiddenGemsApplication extends Application {
             LinearGradient pauseGradient = new LinearGradient(
                     0, 0, 1, 0,
                     true, CycleMethod.NO_CYCLE,
-                    new Stop(0, Color.rgb(0, 30, 0)),       // Very dark green
-                    new Stop(1, Color.rgb(0, 40, 40))       // Dark teal
+                    new Stop(0, Color.rgb(0, 30, 0)),
+                    new Stop(1, Color.rgb(0, 40, 40))
             );
 
             // Calculate a font size based on the cell size and pulsate it
-            double pulsatingEffect = Math.sin(System.currentTimeMillis() * 0.005); // Value between -1 and 1
-            double pauseFontSize = Math.max(20, cellSize * 0.5 * 4 + pulsatingEffect * 5); // Pulsate around 4 cells
+            double pulsatingEffect = Math.sin(System.currentTimeMillis() * 0.005);
+            double pauseFontSize = Math.max(20, cellSize * 0.5 * 4 + pulsatingEffect * 5);
 
             gc.setFont(new javafx.scene.text.Font("Courier New", pauseFontSize));
 
-            // Create a Text object to calculate dimensions
+            // Center the PAUSE text based on updated sizes
             Text pauseText = new Text("PAUSE");
             pauseText.setFont(gc.getFont());
             double pauseTextWidth = pauseText.getLayoutBounds().getWidth();
             double pauseTextHeight = pauseText.getLayoutBounds().getHeight();
 
-            // Center the PAUSE text based on updated sizes
-            double pauseX = (width - pauseTextWidth) / 2; // Center X
-            double pauseY = (height - pauseTextHeight) / 2; // Center Y
+            double pauseX = (width - pauseTextWidth) / 2;
+            double pauseY = (height - pauseTextHeight) / 2;
 
-            // Calculate shadow position using text dimensions for centering
-            double shadowOffsetX = 2; // X offset for shadow
-            double shadowOffsetY = 2; // Y offset for shadow
+            gc.setGlobalAlpha(0.7);
+            gc.setFill(Color.rgb(0, 40, 0));
+            gc.fillText("PAUSE", pauseX + 2, pauseY + 2);
 
-            // Draw a larger, darker shadow for the PAUSE text
-            gc.setGlobalAlpha(0.7); // Slightly reduced opacity for a stronger shadow
-            gc.setFill(Color.rgb(0, 40, 0)); // Dark green shadow
-            gc.fillText("PAUSE", pauseX + shadowOffsetX, pauseY + shadowOffsetY); // Larger offset for a bolder shadow
-
-            // Draw the main PAUSE text with the darker neon green gradient
-            gc.setGlobalAlpha(1.0); // Reset alpha to full opacity for main text
+            gc.setGlobalAlpha(1.0);
             gc.setFill(pauseGradient);
             gc.fillText("PAUSE", pauseX, pauseY);
         }
