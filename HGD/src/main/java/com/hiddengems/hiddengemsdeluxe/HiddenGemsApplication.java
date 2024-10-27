@@ -530,23 +530,42 @@ public class HiddenGemsApplication extends Application {
             gc.strokeLine(x, boardOffsetY, x, boardOffsetY + NUM_ROWS * cellSize);
         }
 
-        // Draw "Score" with a green glow effect
+        // Set font and prepare score text
         gc.setFont(new javafx.scene.text.Font("Courier New", scoreFontSize));
         String scoreText = "Score: " + score;
         Text text = new Text(scoreText);
         text.setFont(gc.getFont());
+
+        // Calculate text width and height
         double textWidth = text.getLayoutBounds().getWidth();
         double textHeight = text.getLayoutBounds().getHeight();
 
-        // Calculate score position based on cell size
-        double scoreX = boardOffsetX - textWidth - (cellSize * 0.5); // Center it with respect to the cell size
-        double scoreY = boardOffsetY + (cellSize * 0.5) + (textHeight / 2); // Vertically center within the cell
+        // Calculate position based on cell size
+        double scoreX = boardOffsetX - textWidth - (cellSize * 0.5);
+        double scoreY = boardOffsetY + (cellSize * 0.5) + (textHeight / 2);
 
-        // Draw shadow (black border) for the score text
-        gc.setFill(Color.BLACK);
-        gc.fillText(scoreText, scoreX + 2, scoreY + 2);  // Black shadow offset
-        gc.setFill(Color.LIGHTGREEN); // Matrix-style text color
-        gc.fillText(scoreText, scoreX, scoreY);           // Light green text
+        // Create a refined glow effect by layering slightly offset text with higher visibility colors
+        gc.setFill(Color.web("#145A32"));  // Dark green for outer glow layer
+        gc.fillText(scoreText, scoreX - 1.5, scoreY - 1.5);
+        gc.fillText(scoreText, scoreX + 1.5, scoreY - 1.5);
+        gc.fillText(scoreText, scoreX - 1.5, scoreY + 1.5);
+        gc.fillText(scoreText, scoreX + 1.5, scoreY + 1.5);
+
+        gc.setFill(Color.web("#1E8449"));  // Mid-tone green for middle glow layer
+        gc.fillText(scoreText, scoreX - 0.8, scoreY - 0.8);
+        gc.fillText(scoreText, scoreX + 0.8, scoreY - 0.8);
+        gc.fillText(scoreText, scoreX - 0.8, scoreY + 0.8);
+        gc.fillText(scoreText, scoreX + 0.8, scoreY + 0.8);
+
+        gc.setFill(Color.web("#2ECC71"));  // Light green for inner glow layer
+        gc.fillText(scoreText, scoreX - 0.3, scoreY - 0.3);
+        gc.fillText(scoreText, scoreX + 0.3, scoreY - 0.3);
+        gc.fillText(scoreText, scoreX - 0.3, scoreY + 0.3);
+        gc.fillText(scoreText, scoreX + 0.3, scoreY + 0.3);
+
+        // Draw main text with neon green
+        gc.setFill(Color.LIMEGREEN);
+        gc.fillText(scoreText, scoreX, scoreY);
 
         // Draw falling stone if present
         if (fallingStone != null) {
