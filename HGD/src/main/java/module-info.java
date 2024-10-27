@@ -10,6 +10,7 @@ module com.hiddengems.hiddengemsdeluxe {
     requires org.kordamp.bootstrapfx.core;
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
+    requires java.desktop;
 
     opens com.hiddengems.hiddengemsdeluxe to javafx.fxml;
     exports com.hiddengems.hiddengemsdeluxe;

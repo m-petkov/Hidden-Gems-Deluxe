@@ -12,6 +12,8 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.animation.PauseTransition;
+
+import javax.swing.*;
 import java.util.Random;
 
 public class HiddenGemsApplication extends Application {
@@ -330,7 +332,40 @@ public class HiddenGemsApplication extends Application {
             repaintMarkedStones(toClear);
         }
 
+        // Check for full columns
+        if (checkFullColumn()) {
+            showGameOverPopup();
+        }
+
         return matchesFound;
+    }
+
+    // Helper method to check if any column is full (contains 18 stones)
+    private boolean checkFullColumn() {
+        for (int col = 0; col < NUM_COLS; col++) {
+            int consecutiveStones = 0;
+            for (int row = 0; row < NUM_ROWS; row++) {
+                if (isColor(gameBoard[row][col])) {
+                    consecutiveStones++;
+                    if (consecutiveStones >= 18) {
+                        return true; // Column is full
+                    }
+                } else {
+                    consecutiveStones = 0;
+                }
+            }
+        }
+        return false;
+    }
+
+    // Helper method to show a popup window for game over
+    private void showGameOverPopup() {
+        int response = JOptionPane.showOptionDialog(null, "Game Over! A column is full.",
+                "Game Over", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
+                null, new Object[]{"Exit"}, "Exit");
+        if (response == JOptionPane.OK_OPTION) {
+            System.exit(0);
+        }
     }
 
     private void repaintMarkedStones(boolean[][] toClear) {
