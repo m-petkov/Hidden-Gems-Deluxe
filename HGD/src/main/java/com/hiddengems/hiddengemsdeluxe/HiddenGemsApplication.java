@@ -607,28 +607,44 @@ public class HiddenGemsApplication extends Application {
     }
 
     private void drawCell(GraphicsContext gc, char color, double x, double y, double size) {
-        // Радиален градиент за по-реалистичен триизмерен ефект
+        // Get the base color using getColor as specified
         Color baseColor = getColor(color);
+
+        // Matrix-inspired gradient with green tones: Keep the base color but add a digital look with the gradient
         RadialGradient gradient = new RadialGradient(
                 0, 0, x + size / 2, y + size / 2, size / 2,
                 false, CycleMethod.NO_CYCLE,
-                new Stop(0, baseColor.brighter()),
-                new Stop(1, baseColor.darker())
+                new Stop(0, baseColor.brighter().saturate()),   // Bright center for a glow effect
+                new Stop(0.5, baseColor),                       // Mid-tone base color
+                new Stop(1, baseColor.darker().darker())        // Darker edge for contrast
         );
 
-        // Закръглени ъгли за по-мек вид
+        // Define points for the diamond shape, centered on (x, y) with size as the dimension
+        double halfSize = size / 2;
+        double[] xPoints = {x + halfSize, x + size, x + halfSize, x};  // Right, bottom, left, top
+        double[] yPoints = {y, y + halfSize, y + size, y + halfSize};
+
+        // Fill the diamond shape with the gradient
         gc.setFill(gradient);
-        gc.fillRoundRect(x, y, size, size, size * 0.2, size * 0.2);  // Закръгленост 20% от размера
+        gc.fillPolygon(xPoints, yPoints, 4);
 
-        // Добавяне на светлосенки
-        gc.setStroke(Color.BLACK);
-        gc.setLineWidth(2);
-        gc.strokeRoundRect(x, y, size, size, size * 0.2, size * 0.2);  // Същата закръгленост като на формата
+        // Apply a neon glow effect using a softer green outline based on baseColor
+        gc.setGlobalAlpha(0.4); // Reduced opacity for the glow effect
+        gc.setStroke(baseColor.brighter().brighter()); // Brighter version of baseColor for glow
+        gc.setLineWidth(2.5);
+        gc.strokePolygon(xPoints, yPoints, 4); // Outline the diamond shape
 
-        // Лека сянка под камъка
-        gc.setGlobalAlpha(0.3);
-        gc.setFill(Color.GRAY);
-        gc.fillRoundRect(x + 3, y + 3, size, size, size * 0.2, size * 0.2);
+        // Darker shadow effect for a deeper look
+        gc.setGlobalAlpha(0.25);
+        gc.setFill(Color.BLACK); // Black shadow to create digital depth
+        double shadowOffset = 3;
+        double[] shadowXPoints = {x + halfSize + shadowOffset, x + size + shadowOffset,
+                x + halfSize + shadowOffset, x + shadowOffset};
+        double[] shadowYPoints = {y + shadowOffset, y + halfSize + shadowOffset,
+                y + size + shadowOffset, y + halfSize + shadowOffset};
+        gc.fillPolygon(shadowXPoints, shadowYPoints, 4); // Offset shadow for a 3D effect
+
+        // Reset alpha to full opacity
         gc.setGlobalAlpha(1.0);
     }
 
