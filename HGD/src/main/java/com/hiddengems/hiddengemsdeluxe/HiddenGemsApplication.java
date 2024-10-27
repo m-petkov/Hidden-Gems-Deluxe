@@ -340,14 +340,14 @@ public class HiddenGemsApplication extends Application {
         return matchesFound;
     }
 
-    // Helper method to check if any column is full (contains 18 stones)
+    // Helper method to check if any column is full (contains 17 stones)
     private boolean checkFullColumn() {
         for (int col = 0; col < NUM_COLS; col++) {
             int consecutiveStones = 0;
             for (int row = 0; row < NUM_ROWS; row++) {
                 if (isColor(gameBoard[row][col])) {
                     consecutiveStones++;
-                    if (consecutiveStones >= 18) {
+                    if (consecutiveStones >= 17) {
                         return true; // Column is full
                     }
                 } else {
