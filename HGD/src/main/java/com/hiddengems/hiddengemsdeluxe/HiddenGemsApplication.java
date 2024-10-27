@@ -18,8 +18,8 @@ public class HiddenGemsApplication extends Application {
 
     private static final int MIN_WIDTH = 800;
     private static final int MIN_HEIGHT = 600;
-    private static final int NUM_ROWS = 20;
-    private static final int NUM_COLS = 8;
+    public static final int NUM_ROWS = 20;
+    public static final int NUM_COLS = 8;
     private static final Duration FALL_DURATION = Duration.seconds(1);
     private static final Duration FAST_FALL_DURATION = Duration.seconds(0.1);
     private static final Duration MOVE_DURATION = Duration.millis(100); // Duration for left/right movement
@@ -222,7 +222,7 @@ public class HiddenGemsApplication extends Application {
     }
 
     private void calculateNextStone() {
-        nextStone = new TripleStone(0, 0, new char[]{getRandomColor(), getRandomColor(), getRandomColor()});
+        nextStone = new TripleStone(this, 0, 0, new char[]{getRandomColor(), getRandomColor(), getRandomColor()});
     }
 
     private int getCenterColumn() {
@@ -232,7 +232,7 @@ public class HiddenGemsApplication extends Application {
     private void placeNewStones() {
         // Постави новия камък в централната колона
         int centerCol = getCenterColumn();
-        fallingStone = new TripleStone(0, centerCol, nextStone.colors);
+        fallingStone = new TripleStone(this, 0, centerCol, nextStone.colors);
         calculateNextStone(); // Пресметни следващия камък
     }
 
@@ -615,7 +615,7 @@ public class HiddenGemsApplication extends Application {
         }
     }
 
-    private void drawCell(GraphicsContext gc, char color, double x, double y, double size) {
+    public void drawCell(GraphicsContext gc, char color, double x, double y, double size) {
         // Get the base color using getColor as specified
         Color baseColor = getColor(color);
 
@@ -683,98 +683,6 @@ public class HiddenGemsApplication extends Application {
 
     private boolean isColor(char c) {
         return c == 'R' || c == 'G' || c == 'B' || c == 'Y' || c == 'P';
-    }
-
-    private class TripleStone {
-        int row;
-        int col;
-        char[] colors;
-
-        TripleStone(int row, int col, char[] colors) {
-            this.row = row;
-            this.col = col;
-            this.colors = colors;
-        }
-
-        void draw(GraphicsContext gc, double offsetX, double offsetY, double size) {
-            for (int i = 0; i < colors.length; i++) {
-                double x = offsetX + col * size;
-                double y = offsetY + (row + i) * size;
-                drawCell(gc, colors[i], x, y, size);
-            }
-        }
-
-        void drawPreview(GraphicsContext gc, double offsetX, double offsetY, double size) {
-            for (int i = 0; i < colors.length; i++) {
-                double x = offsetX;
-                double y = offsetY + i * size;
-                drawCell(gc, colors[i], x, y, size);
-            }
-        }
-
-        boolean moveDown(char[][] board) {
-            if (canMoveDown(board)) {
-                row++;
-                return true;
-            }
-            placeOnBoard(board);
-            return false;
-        }
-
-        boolean canMoveDown(char[][] board) {
-            for (int i = 0; i < colors.length; i++) {
-                if (row + i + 1 >= NUM_ROWS || board[row + i + 1][col] != ' ') {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        void moveLeft(char[][] board) {
-            if (col > 0 && canMoveLeft(board)) {
-                col--;
-            }
-        }
-
-        void moveRight(char[][] board) {
-            if (col < NUM_COLS - 1 && canMoveRight(board)) {
-                col++;
-            }
-        }
-
-        boolean canMoveLeft(char[][] board) {
-            for (int i = 0; i < colors.length; i++) {
-                if (col - 1 < 0 || board[row + i][col - 1] != ' ') {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        boolean canMoveRight(char[][] board) {
-            for (int i = 0; i < colors.length; i++) {
-                if (col + 1 >= NUM_COLS || board[row + i][col + 1] != ' ') {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        void shiftUp() {
-            if (colors.length > 1) {
-                char temp = colors[0];
-                for (int i = 0; i < colors.length - 1; i++) {
-                    colors[i] = colors[i + 1];
-                }
-                colors[colors.length - 1] = temp;
-            }
-        }
-
-        void placeOnBoard(char[][] board) {
-            for (int i = 0; i < colors.length; i++) {
-                board[row + i][col] = colors[i];
-            }
-        }
     }
 
     public static void main(String[] args) {
