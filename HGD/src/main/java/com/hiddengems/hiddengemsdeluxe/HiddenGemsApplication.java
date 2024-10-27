@@ -22,7 +22,7 @@ public class HiddenGemsApplication extends Application {
     private static final int NUM_COLS = 8;
     private static final Duration FALL_DURATION = Duration.seconds(1);
     private static final Duration FAST_FALL_DURATION = Duration.seconds(0.1);
-    private static final Duration MOVE_DURATION = Duration.millis(75); // Duration for left/right movement
+    private static final Duration MOVE_DURATION = Duration.millis(100); // Duration for left/right movement
     private int score = 0;
 
     private Random random = new Random();
